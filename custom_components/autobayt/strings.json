@@ -1,0 +1,163 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Sign in to Autobayt",
+        "description": "Use the email and password of your Autobayt app account. Home Assistant keeps only the sign-in token, not your password.",
+        "data": {
+          "email": "Email",
+          "password": "Password"
+        },
+        "sections": {
+          "advanced": {
+            "name": "Advanced",
+            "data": {
+              "host": "Server address"
+            },
+            "data_description": {
+              "host": "Only change this if Autobayt gave you a different server address."
+            }
+          }
+        },
+        "data_description": {
+          "email": "The email you sign in to the Autobayt app with.",
+          "password": "Your Autobayt app password. It is used once to get a sign-in token and is not stored."
+        }
+      },
+      "location": {
+        "title": "Choose a home",
+        "description": "Pick the Autobayt location to add. Add the integration again for another location.",
+        "data": {
+          "location_id": "Location"
+        },
+        "data_description": {
+          "location_id": "The Autobayt home whose devices to add."
+        }
+      },
+      "reauth_confirm": {
+        "title": "Sign in to Autobayt again",
+        "description": "Autobayt no longer accepts the saved sign-in for {location}. Enter your password again.",
+        "data": {
+          "email": "Email",
+          "password": "Password"
+        },
+        "data_description": {
+          "email": "The email you sign in to the Autobayt app with.",
+          "password": "Your Autobayt app password. It is used once to get a sign-in token and is not stored."
+        }
+      },
+      "reconfigure": {
+        "title": "Change the Autobayt sign-in",
+        "description": "Sign in again for {location}, for example after changing your password or when Autobayt gives you a new server address. It must be the same Autobayt account.",
+        "data": {
+          "email": "Email",
+          "password": "Password"
+        },
+        "data_description": {
+          "email": "The email you sign in to the Autobayt app with.",
+          "password": "Your Autobayt app password. It is used once to get a sign-in token and is not stored."
+        },
+        "sections": {
+          "advanced": {
+            "name": "Advanced",
+            "data": {
+              "host": "Server address"
+            },
+            "data_description": {
+              "host": "Only change this if Autobayt gave you a different server address."
+            }
+          }
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Wrong email or password.",
+      "cannot_connect": "Could not reach the Autobayt server.",
+      "unknown": "Unexpected error."
+    },
+    "abort": {
+      "already_configured": "This location is already added.",
+      "no_locations": "This Autobayt account has no locations.",
+      "reauth_successful": "Signed in again.",
+      "wrong_account": "That is a different Autobayt account than the one this home was added with.",
+      "reconfigure_successful": "Sign-in updated.",
+      "location_missing": "This Autobayt account no longer has this home."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Autobayt options",
+        "data": {
+          "scan_interval": "Refresh every",
+          "shutter_models": "Shutter model names",
+          "push": "Push updates from Autobayt",
+          "energy": "Energy sensors",
+          "energy_timezone": "Time zone for daily energy",
+          "light_words": "Words that mean a light",
+          "swap_shutter_direction": "Swap shutter up and down",
+          "shutter_travel_time": "Shutter travel time"
+        },
+        "data_description": {
+          "scan_interval": "How often to ask Autobayt for switch states, in seconds, while push updates are off or unavailable.",
+          "shutter_models": "Comma-separated model names to treat as shutters, if a shutter shows up as switches.",
+          "push": "Autobayt sends changes to Home Assistant as they happen. Needs a public HTTPS address for Home Assistant (port 443); without one, or when off, states are read at the interval above.",
+          "energy": "Show power and today's energy for power-metering (PM) devices.",
+          "energy_timezone": "IANA time zone that decides when the day starts, for example Asia/Amman. Defaults to the time zone of Home Assistant.",
+          "light_words": "A channel whose name contains one of these comma-separated words is shown as a light; the rest are switches. The light channel on a shutter plate is always a light.",
+          "swap_shutter_direction": "Turn on if Open moves your shutters down. By default button 1 on the plate drives the motor up and button 2 drives it down.",
+          "shutter_travel_time": "Seconds a shutter takes from fully closed to fully open. Leave empty if unsure. When set, shutters can be moved to a position and are stopped once they reach the end."
+        }
+      }
+    },
+    "error": {
+      "invalid_timezone": "Not a known time zone. Use a name such as Europe/Berlin or Asia/Amman."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "power": {
+        "name": "Power"
+      },
+      "energy_today": {
+        "name": "Energy today"
+      }
+    },
+    "light": {
+      "plate_light": {
+        "name": "Light"
+      },
+      "named_plate_light": {
+        "name": "{label} light"
+      },
+      "channel": {
+        "name": "Channel {number}"
+      }
+    },
+    "switch": {
+      "channel": {
+        "name": "Channel {number}"
+      }
+    }
+  },
+  "exceptions": {
+    "auth_failed": {
+      "message": "Autobayt no longer accepts the saved sign-in. Sign in again."
+    },
+    "update_failed": {
+      "message": "Could not read the devices from Autobayt: {error}"
+    },
+    "energy_update_failed": {
+      "message": "Could not read energy from Autobayt: {error}"
+    },
+    "command_failed": {
+      "message": "Autobayt did not accept the command: {error}"
+    },
+    "no_travel_time": {
+      "message": "Set the shutter travel time in the Autobayt options to move a shutter to a position."
+    },
+    "position_unknown": {
+      "message": "The shutter position is not known yet. Open or close it fully once, then try again."
+    }
+  }
+}
