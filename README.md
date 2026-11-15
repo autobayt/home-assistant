@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Autobayt for Home Assistant
 
 A Home Assistant integration for [Autobayt](https://autobayt.com) Wi-Fi wall switches and shutters, through the Autobayt cloud.
@@ -132,3 +133,6 @@ Tests run against a fake Autobayt backend; nothing talks to the real cloud.
 ## License
 
 MIT
+=======
+# home-assistant
+>>>>>>> f9a565f8192ccd7dc690e8382f5dc4733f54b444
