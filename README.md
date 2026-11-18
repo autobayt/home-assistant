@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Autobayt for Home Assistant
 
 A Home Assistant integration for [Autobayt](https://autobayt.com) Wi-Fi wall switches and shutters, through the Autobayt cloud.
@@ -17,7 +16,7 @@ This is a community project and is not made or supported by Autobayt.
 ### Home Assistant Marketplace
 
 1. In Home Assistant, open **Settings → Marketplace**.
-2. Choose **Add from link** and paste `https://github.com/samerzughul/ha-autobayt`.
+2. Choose **Add from link** and paste `https://github.com/autobayt/home-assistant`.
 3. Install **Autobayt** and restart Home Assistant.
 
 ### Manually
@@ -135,4 +134,3 @@ Tests run against a fake Autobayt backend; nothing talks to the real cloud.
 MIT
 =======
 # home-assistant
->>>>>>> f9a565f8192ccd7dc690e8382f5dc4733f54b444
