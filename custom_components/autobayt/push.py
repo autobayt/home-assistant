@@ -31,6 +31,7 @@ from yarl import URL
 
 from homeassistant.components import webhook
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.network import NoURLAvailableError
 from homeassistant.util import dt as dt_util
 from homeassistant.util.hass_dict import HassKey
@@ -154,6 +155,8 @@ class AutobaytPush:
             device_ids = self._device_ids()
             if not self._coordinators or not device_ids:
                 await self._async_unsubscribe(client)
+                if self._coordinators:
+                    self._report_issue("push_no_devices")
                 return
             client = next(reversed(self._coordinators.values())).client
             if not force and self.active and device_ids == self._subscribed:
@@ -173,7 +176,7 @@ class AutobaytPush:
             try:
                 url = callback_url(self.hass, self._webhook_id)
             except NoURLAvailableError:
-                self._failed("Home Assistant has no public HTTPS address")
+                self._failed("Home Assistant has no public HTTPS address", issue_key="push_public_url")
                 return
             # Refuse callbacks until the new secret is stored, so Autobayt
             # retries any that arrive before the reply.
@@ -187,7 +190,7 @@ class AutobaytPush:
             generation = reply.get("generation")
             subscription_id = reply.get("id")
             if not (secret and generation and subscription_id):
-                self._failed("subscription reply incomplete")
+                self._failed("subscription reply incomplete", issue_key="push_incomplete_response")
                 return
             self._secret = str(secret)
             self._generation = str(generation)
@@ -197,6 +200,7 @@ class AutobaytPush:
             self._subscribed = device_ids
             self.last_error = None
             self._set_active(True)
+            self._clear_issue()
             _LOGGER.debug("Autobayt push updates active for %s device(s)", len(device_ids))
 
     async def _async_confirm(self, client: Any) -> None:
@@ -216,9 +220,13 @@ class AutobaytPush:
                 "Another Home Assistant took over Autobayt push updates for this account; "
                 "polling instead until the integration is reloaded"
             )
-            self._failed("replaced by another subscription", retry=False)
+            self._failed(
+                "replaced by another subscription", retry=False, issue_key="push_replaced"
+            )
 
-    def _failed(self, reason: str, retry: bool = True) -> None:
+    def _failed(
+        self, reason: str, retry: bool = True, issue_key: str = "push_subscription_failed"
+    ) -> None:
         if self.last_error != reason:
             _LOGGER.info("Autobayt push updates unavailable, polling instead: %s", reason)
         self.last_error = reason
@@ -227,8 +235,30 @@ class AutobaytPush:
         )
         self._drop_webhook()
         self._set_active(False)
+        self._report_issue(issue_key, reason)
+
+    def _report_issue(self, translation_key: str, reason: str = "") -> None:
+        """Explain a push failure once per account, including its affected homes."""
+        ir.async_create_issue(
+            self.hass,
+            DOMAIN,
+            f"push_{self._user_id}",
+            is_fixable=False,
+            is_persistent=False,
+            severity=ir.IssueSeverity.WARNING,
+            translation_key=translation_key,
+            translation_placeholders={
+                "homes": ", ".join(c.config_entry.title for c in self._coordinators.values()),
+                "reason": reason,
+            },
+        )
+
+    def _clear_issue(self) -> None:
+        """Remove the account's warning when push recovers or is stopped."""
+        ir.async_delete_issue(self.hass, DOMAIN, f"push_{self._user_id}")
 
     async def _async_unsubscribe(self, client: Any) -> None:
+        self._clear_issue()
         was_active = self.active
         self._drop_webhook()
         self._set_active(False)

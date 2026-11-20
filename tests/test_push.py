@@ -7,6 +7,7 @@ import hmac
 import json
 import time
 from typing import Any
+from unittest.mock import patch
 
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -26,6 +27,7 @@ from custom_components.autobayt.diagnostics import async_get_config_entry_diagno
 from custom_components.autobayt.push import PUSH_MANAGERS, signature_ok
 from homeassistant.components.cover import ATTR_CURRENT_POSITION
 from homeassistant.const import ATTR_ENTITY_ID
+from homeassistant.helpers import issue_registry as ir
 from homeassistant.setup import async_setup_component
 
 from .conftest import LOC_ID, OTHER_LOC_ID, TOKEN, USER_ID, state_of
@@ -251,6 +253,11 @@ async def test_without_public_url_it_polls(hass, fake, config_entry):
     diag = await async_get_config_entry_diagnostics(hass, entry)
     assert diag["push"]["active"] is False
     assert "public HTTPS" in diag["push"]["last_error"]
+    issue = ir.async_get(hass).async_get_issue(DOMAIN, f"push_{USER_ID}")
+    assert issue.translation_key == "push_public_url"
+    assert issue.translation_placeholders["homes"] == entry.title
+    assert await hass.config_entries.async_unload(entry.entry_id)
+    assert ir.async_get(hass).async_get_issue(DOMAIN, f"push_{USER_ID}") is None
 
 
 async def test_plain_http_address_is_not_used(hass, fake, config_entry):
@@ -261,6 +268,31 @@ async def test_plain_http_address_is_not_used(hass, fake, config_entry):
     assert not entry.runtime_data.devices.push_active
 
 
+async def test_no_devices_repair_clears_when_devices_appear(hass, fake, config_entry, client):
+    devices = fake.devices
+    fake.devices = []
+    entry = await _setup(hass, config_entry)
+    registry = ir.async_get(hass)
+    issue_id = f"push_{USER_ID}"
+    assert registry.async_get_issue(DOMAIN, issue_id).translation_key == "push_no_devices"
+    assert fake.webhook_puts == []
+    fake.devices = devices
+    await entry.runtime_data.devices.async_refresh()
+    await hass.async_block_till_done()
+    assert entry.runtime_data.devices.push_active
+    assert registry.async_get_issue(DOMAIN, issue_id) is None
+
+
+async def test_incomplete_response_creates_repair(hass, fake, config_entry, client):
+    with patch(
+        "custom_components.autobayt.api.AutobaytClient.set_webhook", return_value={"id": "sub-1"}
+    ):
+        entry = await _setup(hass, config_entry)
+    assert not entry.runtime_data.devices.push_active
+    issue = ir.async_get(hass).async_get_issue(DOMAIN, f"push_{USER_ID}")
+    assert issue.translation_key == "push_incomplete_response"
+
+
 async def test_refused_subscription_falls_back_and_retries(
     hass, fake, config_entry, client, freezer
 ):
@@ -269,6 +301,9 @@ async def test_refused_subscription_falls_back_and_retries(
     coordinator = entry.runtime_data.devices
     assert not coordinator.push_active
     assert "404" in coordinator.push.last_error
+    issue = ir.async_get(hass).async_get_issue(DOMAIN, f"push_{USER_ID}")
+    assert issue.translation_key == "push_subscription_failed"
+    assert "404" in issue.translation_placeholders["reason"]
     # Polls do not retry straight away...
     fake.webhook_status = 200
     await coordinator.async_refresh()
@@ -280,6 +315,8 @@ async def test_refused_subscription_falls_back_and_retries(
     await hass.async_block_till_done()
     assert len(fake.webhook_puts) == 1
     assert coordinator.push_active
+
+    assert ir.async_get(hass).async_get_issue(DOMAIN, f"push_{USER_ID}") is None
 
 
 async def test_new_device_resubscribes(hass, fake, config_entry, client):
@@ -314,6 +351,8 @@ async def test_taken_over_by_another_home_assistant(hass, fake, config_entry, cl
     await coordinator.async_refresh()
     await hass.async_block_till_done()
     assert not coordinator.push_active
+    issue = ir.async_get(hass).async_get_issue(DOMAIN, f"push_{USER_ID}")
+    assert issue.translation_key == "push_replaced"
     assert coordinator.update_interval.total_seconds() == 10
     # It does not take the subscription back.
     await coordinator.async_refresh()

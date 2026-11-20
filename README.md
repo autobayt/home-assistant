@@ -23,6 +23,8 @@ This is a community project and is not made or supported by Autobayt.
 
 Copy `custom_components/autobayt` into the `custom_components` folder of your Home Assistant configuration and restart.
 
+The integration includes the current Autobayt emblem from the [official website logo](https://autobayt.com/images/autobayt-logo.png), with a white background for visibility in both themes. Home Assistant 2026.3 or newer uses the bundled icon in **Settings → Devices & services**. After updating, restart Home Assistant and refresh the browser if the previous icon is still displayed.
+
 ## Set up
 
 1. **Settings → Devices & services → Add integration → Autobayt**.
@@ -71,6 +73,7 @@ With push updates on, Home Assistant gives Autobayt a webhook address and Autoba
 - **It needs a public HTTPS address on port 443**, set under **Settings → System → Network → Home Assistant URL** (or Home Assistant Cloud). Without one, the integration polls as before and the logs say why.
 - Each snapshot is signed. Home Assistant checks the signature and the time it was sent, and ignores old, repeated or foreign snapshots. The signing secret is kept in memory only; Home Assistant subscribes afresh on every start.
 - Autobayt keeps **one push subscription per account**. All homes of the account in one Home Assistant share it. If a second Home Assistant uses the same account, the last one to start takes push over and the other goes back to polling (with a warning in its log) until it is reloaded. Turn push off on the one that should poll.
+- If push registration fails, **Settings → System → Repairs** shows the affected homes, the failure reason and suggested next steps. The warning clears when registration succeeds or push is disabled for all affected homes.
 - If Autobayt refuses the subscription, the integration polls and tries again every 15 minutes. Removing or disabling the integration stops the subscription.
 
 ## Shutters

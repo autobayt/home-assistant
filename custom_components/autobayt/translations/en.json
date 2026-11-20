@@ -159,5 +159,27 @@
     "position_unknown": {
       "message": "The shutter position is not known yet. Open or close it fully once, then try again."
     }
+  },
+  "issues": {
+    "push_public_url": {
+      "title": "Autobayt push updates need a public HTTPS address",
+      "description": "Push updates are unavailable for: {homes}.\n\nSet a public HTTPS address on port 443 under Settings → System → Network → Home Assistant URL, or configure Home Assistant Cloud. Internal addresses, IP addresses and plain HTTP URLs cannot be used.\n\nDevices continue updating through polling. Registration will retry after 15 minutes on a successful device poll. Reload the integration to try sooner."
+    },
+    "push_subscription_failed": {
+      "title": "Autobayt push registration failed",
+      "description": "Push updates are unavailable for: {homes}.\n\nReason: {reason}.\n\nFor HTTP 401 or 403, check the account sign-in and ask Autobayt support to verify webhook permissions. For HTTP 404, verify the server address and ask support whether it supports webhooks. For rate limits, server errors or connection failures, check connectivity and allow time for the service to recover. For other rejected requests or unexpected responses, contact Autobayt support with the reason above.\n\nDevices continue updating through polling. Registration will retry after 15 minutes on a successful device poll. Reload the integration to try sooner."
+    },
+    "push_incomplete_response": {
+      "title": "Autobayt returned incomplete push registration details",
+      "description": "Push updates are unavailable for: {homes}.\n\nThe server response is missing a subscription ID, generation or signing secret. Contact Autobayt support to check the webhook registration response.\n\nDevices continue updating through polling. Registration will retry after 15 minutes on a successful device poll. Reload the integration to try sooner."
+    },
+    "push_replaced": {
+      "title": "Another Home Assistant took over Autobayt push updates",
+      "description": "Push updates are unavailable for: {homes}.\n\nAutobayt supports one push subscription per account. Another Home Assistant replaced this subscription. Turn off push updates on the other instance, then reload this integration. Automatic registration retries are stopped to prevent the instances from repeatedly replacing each other.\n\nDevices continue updating through polling."
+    },
+    "push_no_devices": {
+      "title": "Autobayt push updates have no devices to subscribe to",
+      "description": "No devices were discovered for: {homes}.\n\nCheck that these homes have devices in the Autobayt app and that this account can access them. If devices appear in the app but not here, contact Autobayt support to check their location assignments and device API response.\n\nHome Assistant continues polling and will try registration when devices are discovered."
+    }
   }
 }
